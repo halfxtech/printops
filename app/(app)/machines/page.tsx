@@ -7,10 +7,9 @@ export const dynamic = 'force-dynamic'
 export default async function MachinesPage() {
   const supabase = createServerClient()
 
-  const [{ data: machines }, { data: products }, { data: inventory }] = await Promise.all([
+  const [{ data: machines }, { data: products }] = await Promise.all([
     supabase.from('machines').select('*').order('owned', { ascending: false }),
     supabase.from('products').select('*').order('name'),
-    supabase.from('inventory').select('*').order('name'),
   ])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,9 +21,9 @@ export default async function MachinesPage() {
     <div className="flex flex-col h-full min-h-0">
       <Header
         title="Equipment"
-        subtitle={`${owned.length} owned · ${notOwned.length} to acquire · ${(inventory ?? []).length} stock items`}
+        subtitle={`${owned.length} owned · ${notOwned.length} to acquire`}
       />
-      <MachineList machines={m} products={products ?? []} initialInventory={inventory ?? []} />
+      <MachineList machines={m} products={products ?? []} />
     </div>
   )
 }

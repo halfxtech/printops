@@ -56,7 +56,6 @@ export async function POST() {
       sell_rm: p.sell_price,
       margin_pct: margin,
       moq: p.moq,
-      turnaround: p.turnaround,
       tags: p.tags,
       supplier: supplier?.name ?? (p.is_diy ? 'DIY' : 'none'),
       machine_needed: machine ? `${machine.name} (${machine.owned ? 'owned' : 'NOT owned'})` : null,

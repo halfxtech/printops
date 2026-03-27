@@ -53,7 +53,6 @@ export function ProductForm({ open, onClose, onSaved, product, suppliers, machin
     cost_price: string
     sell_price: string
     moq: string
-    turnaround: string
     tags: string[]
     notes: string
     status: 'active' | 'inactive'
@@ -66,7 +65,6 @@ export function ProductForm({ open, onClose, onSaved, product, suppliers, machin
     cost_price: String(product?.cost_price ?? ''),
     sell_price: String(product?.sell_price ?? ''),
     moq: product?.moq ?? '',
-    turnaround: product?.turnaround ?? '',
     tags: product?.tags ?? [],
     notes: product?.notes ?? '',
     status: product?.status ?? 'active',
@@ -98,7 +96,6 @@ export function ProductForm({ open, onClose, onSaved, product, suppliers, machin
       cost_price: parseFloat(form.cost_price) || 0,
       sell_price: parseFloat(form.sell_price) || 0,
       moq: form.moq || null,
-      turnaround: form.turnaround || null,
       tags: form.tags,
       notes: form.notes || null,
       status: form.status as 'active' | 'inactive',
@@ -242,13 +239,6 @@ export function ProductForm({ open, onClose, onSaved, product, suppliers, machin
                 value={form.moq}
                 onChange={e => setField('moq', e.target.value)}
                 placeholder="e.g. 20pcs"
-                             />
-            </FormField>
-            <FormField label="Turnaround">
-              <Input
-                value={form.turnaround}
-                onChange={e => setField('turnaround', e.target.value)}
-                placeholder="e.g. 2–3 days"
                              />
             </FormField>
           </div>

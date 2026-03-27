@@ -33,7 +33,6 @@ export interface Product {
   cost_price: number
   sell_price: number
   moq: string | null
-  turnaround: string | null
   tags: string[]
   notes: string | null
   status: 'active' | 'inactive'
@@ -100,6 +99,7 @@ export interface Quote {
   total_cost: number
   created_at: string
   updated_at: string
+  dateline: string | null
 }
 
 export interface QuoteItem {

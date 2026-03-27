@@ -57,6 +57,7 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
   const [customerContact, setCustomerContact] = useState('')
   const [customerAddress, setCustomerAddress] = useState('')
   const [description, setDescription] = useState('')
+  const [dateline, setDateline] = useState('')
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState<Quote['status']>('draft')
   const [lineItems, setLineItems] = useState<LineItem[]>([])
@@ -70,6 +71,7 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
         setCustomerContact(quote.customer_contact ?? '')
         setCustomerAddress(quote.customer_address ?? '')
         setDescription(quote.description ?? '')
+        setDateline(quote.dateline ?? '')
         setNotes(quote.notes ?? '')
         setStatus(quote.status)
         setLineItems(quote.quote_items.map(item => ({
@@ -89,6 +91,7 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
         setCustomerContact('')
         setCustomerAddress('')
         setDescription('')
+        setDateline('')
         setNotes('')
         setStatus('draft')
         setLineItems([])
@@ -139,6 +142,7 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
           customer_contact: customerContact.trim() || null,
           customer_address: customerAddress.trim() || null,
           description: description.trim() || null,
+          dateline: dateline || null,
           notes: notes.trim() || null,
           status,
           total_sell: totalSell,
@@ -155,6 +159,7 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
           customer_contact: customerContact.trim() || null,
           customer_address: customerAddress.trim() || null,
           description: description.trim() || null,
+          dateline: dateline || null,
           notes: notes.trim() || null,
           status,
           total_sell: totalSell,
@@ -238,6 +243,13 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
                 placeholder="e.g. Raya packaging set"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
+              />
+            </FormField>
+            <FormField label="Job deadline">
+              <Input
+                type="date"
+                value={dateline}
+                onChange={e => setDateline(e.target.value)}
               />
             </FormField>
           </div>

@@ -76,21 +76,11 @@ export function ProductCard({ product, status, supplier, machine, onEdit, onArch
             </div>
           </div>
 
-          {/* MOQ + turnaround */}
-          {(product.moq || product.turnaround) && (
-            <div className="grid grid-cols-2 gap-4">
-              {product.moq && (
-                <div>
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">MOQ</p>
-                  <p className="text-[13px] text-foreground">{product.moq}</p>
-                </div>
-              )}
-              {product.turnaround && (
-                <div>
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Turnaround</p>
-                  <p className="text-[13px] text-foreground">{product.turnaround}</p>
-                </div>
-              )}
+          {/* MOQ */}
+          {product.moq && (
+            <div>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">MOQ</p>
+              <p className="text-[13px] text-foreground">{product.moq}</p>
             </div>
           )}
 

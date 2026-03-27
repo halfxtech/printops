@@ -121,6 +121,11 @@ export function QuoteList({ initialQuotes, products, suppliers }: QuoteListProps
                               <span className="font-mono mr-1.5">{quote.quote_number}</span>
                             )}
                             {secondaryName}
+                            {quote.dateline && (
+                              <span className="text-orange-500 font-medium ml-1">
+                                · Due {new Date(quote.dateline + 'T12:00:00').toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -158,6 +163,16 @@ export function QuoteList({ initialQuotes, products, suppliers }: QuoteListProps
                             )}
                           </div>
                         </div>
+
+                        {/* Job deadline */}
+                        {quote.dateline && (
+                          <div>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold mb-1">Job deadline</p>
+                            <p className="text-sm font-semibold text-foreground">
+                              {new Date(quote.dateline + 'T12:00:00').toLocaleDateString('en-MY', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+                            </p>
+                          </div>
+                        )}
 
                         {/* Line items */}
                         {quote.quote_items.length > 0 && (

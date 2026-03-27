@@ -40,7 +40,6 @@ create table products (
   cost_price numeric(10,2) default 0,
   sell_price numeric(10,2) default 0,
   moq text,
-  turnaround text,
   tags text[] default '{}',
   notes text,
   status text default 'active' check (status in ('active','inactive')),
@@ -85,6 +84,7 @@ create table quotes (
   notes text,
   total_sell numeric(10,2) default 0,
   total_cost numeric(10,2) default 0,
+  dateline date,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
