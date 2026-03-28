@@ -102,7 +102,7 @@ export function InventoryForm({ open, onClose, onSaved, item }: InventoryFormPro
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col gap-0 p-0 overflow-hidden">
+      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col gap-0 p-0 overflow-hidden" aria-describedby={undefined}>
         <SheetHeader className="px-6 py-4 border-b border-border shrink-0">
           <SheetTitle className="text-base font-semibold">
             {item ? 'Edit stock item' : 'Add stock item'}

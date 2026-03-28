@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,22 +31,37 @@ export function SupplierForm({ open, onClose, onSaved, supplier }: SupplierFormP
   const [error, setError] = useState<string | null>(null)
 
   const [form, setForm] = useState({
-    name: supplier?.name ?? '',
-    type: supplier?.type ?? 'print',
-    contact: supplier?.contact ?? '',
-    email: supplier?.email ?? '',
-    location: supplier?.location ?? '',
-    moq: supplier?.moq ?? '',
-    turnaround: supplier?.turnaround ?? '',
-    notes: supplier?.notes ?? '',
-    status: supplier?.status ?? 'active',
+    name: '',
+    type: 'print',
+    contact: '',
+    email: '',
+    location: '',
+    website: '',
+    notes: '',
+    status: 'active',
   })
+
+  useEffect(() => {
+    if (open) {
+      setError(null)
+      setForm({
+        name: supplier?.name ?? '',
+        type: supplier?.type ?? 'print',
+        contact: supplier?.contact ?? '',
+        email: supplier?.email ?? '',
+        location: supplier?.location ?? '',
+        website: supplier?.website ?? '',
+        notes: supplier?.notes ?? '',
+        status: supplier?.status ?? 'active',
+      })
+    }
+  }, [open, supplier])
 
   function setField<K extends keyof typeof form>(key: K, value: typeof form[K]) {
     setForm(f => ({ ...f, [key]: value }))
   }
 
-  async function handleSave() {
+  async function handleSave(asDraft = false) {
     if (!form.name.trim()) { setError('Name is required'); return }
     setSaving(true)
     setError(null)
@@ -57,10 +72,9 @@ export function SupplierForm({ open, onClose, onSaved, supplier }: SupplierFormP
       contact: form.contact || null,
       email: form.email || null,
       location: form.location || null,
-      moq: form.moq || null,
-      turnaround: form.turnaround || null,
+      website: form.website || null,
       notes: form.notes || null,
-      status: form.status,
+      status: asDraft ? 'inactive' : form.status,
     }
 
     const { error: err } = isEdit
@@ -75,7 +89,7 @@ export function SupplierForm({ open, onClose, onSaved, supplier }: SupplierFormP
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <SheetContent side="bottom" className="max-h-[88dvh] overflow-y-auto rounded-t-[20px] p-0">
+      <SheetContent side="bottom" className="max-h-[88dvh] overflow-y-auto rounded-t-[20px] p-0" aria-describedby={undefined}>
         <div className="sticky top-0 bg-card z-10 px-4 pt-3 pb-2 border-b border-border">
           <div className="w-10 h-1 rounded-full bg-border mx-auto mb-3" />
           <SheetHeader className="text-left px-0">
@@ -130,22 +144,18 @@ export function SupplierForm({ open, onClose, onSaved, supplier }: SupplierFormP
             <Input value={form.location} onChange={e => setField('location', e.target.value)} placeholder="e.g. Shah Alam, Selangor" />
           </FormField>
 
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="MOQ">
-              <Input value={form.moq} onChange={e => setField('moq', e.target.value)} placeholder="e.g. 50pcs" />
-            </FormField>
-            <FormField label="Turnaround">
-              <Input value={form.turnaround} onChange={e => setField('turnaround', e.target.value)} placeholder="e.g. 2–4 days" />
-            </FormField>
-          </div>
+          <FormField label="Website">
+            <Input type="url" value={form.website} onChange={e => setField('website', e.target.value)} placeholder="https://example.com" />
+          </FormField>
 
           <FormField label="Notes">
             <Textarea value={form.notes} onChange={e => setField('notes', e.target.value)} placeholder="Payment terms, quality notes…" rows={3} className="resize-none" />
           </FormField>
 
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" className="flex-1 h-11" onClick={onClose} disabled={saving}>Cancel</Button>
-            <Button className="flex-1 h-11" onClick={handleSave} disabled={saving}>
+            <Button variant="outline" className="h-11 px-4" onClick={onClose} disabled={saving}>Cancel</Button>
+            <Button variant="outline" className="flex-1 h-11" onClick={() => handleSave(true)} disabled={saving}>Save Draft</Button>
+            <Button className="flex-1 h-11" onClick={() => handleSave(false)} disabled={saving}>
               {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Supplier'}
             </Button>
           </div>

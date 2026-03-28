@@ -99,24 +99,24 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-60 shrink-0 h-full flex flex-col bg-sidebar border-r border-sidebar-border">
+    <aside className="w-64 shrink-0 h-full flex flex-col bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
-      <div className="h-14 flex items-center px-5 border-b border-sidebar-border">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 6 2 18 2 18 9" />
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
               <rect x="6" y="14" width="12" height="8" rx="1" />
             </svg>
           </div>
-          <span className="text-[15px] font-semibold text-foreground tracking-tight">PrintOps</span>
+          <span className="text-[16px] font-bold text-foreground tracking-tight">PrintOps</span>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
-        <p className="apple-grouped-label px-2 mb-2">Main</p>
+      <nav className="flex-1 px-4 py-5 space-y-1">
+        <p className="apple-grouped-label px-2 mb-3">Menu</p>
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
@@ -124,13 +124,13 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-[10px] text-[14px] font-medium transition-all duration-150',
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-150',
                 isActive
                   ? 'bg-primary text-white shadow-sm'
-                  : 'text-foreground hover:bg-accent'
+                  : 'text-foreground/70 hover:text-foreground hover:bg-sidebar-accent'
               )}
             >
-              <span className={cn(isActive ? 'text-white' : 'text-muted-foreground')}>
+              <span className={cn('shrink-0', isActive ? 'text-white' : 'text-foreground/40')}>
                 {item.icon}
               </span>
               {item.label}
@@ -140,8 +140,8 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-5 py-4 border-t border-sidebar-border">
-        <p className="text-[11px] text-muted-foreground">Rawang, Selangor · PrintOps v1.0</p>
+      <div className="px-6 py-4 border-t border-sidebar-border">
+        <p className="text-[11px] text-muted-foreground font-medium">Rawang, Selangor · PrintOps v1.0</p>
       </div>
     </aside>
   )

@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import type { Product, Supplier, Machine, ProductStatus, ProductCategory } from './types'
+export { getSellPrice, calculatePrice } from './calculator'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -9,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 export function getProductStatus(
   product: Product,
   suppliers: Supplier[],
-  machines: Machine[]
+  machines: Machine[] = []
 ): ProductStatus {
   const hasSup = suppliers.find(
     (s) => s.id === product.supplier_id && s.status === 'active'
@@ -40,24 +41,28 @@ export function formatCurrency(amount: number): string {
 
 export function getCategoryColor(category: ProductCategory): string {
   const map: Record<ProductCategory, string> = {
-    packaging: '#FF9500',
-    stationery: '#007AFF',
-    marketing: '#34C759',
-    event: '#AF52DE',
-    digital: '#5AC8FA',
-    signage: '#FF2D55',
+    STN: '#007AFF',
+    MKT: '#34C759',
+    APR: '#FF9500',
+    PKG: '#AF52DE',
+    BOK: '#FF6B6B',
+    EVT: '#FFD60A',
+    SGN: '#30D158',
+    CST: '#8E8E93',
   }
   return map[category] ?? '#8E8E93'
 }
 
 export function getCategoryLabel(category: ProductCategory): string {
   const map: Record<ProductCategory, string> = {
-    packaging: 'Packaging',
-    stationery: 'Stationery',
-    marketing: 'Marketing',
-    event: 'Event',
-    digital: 'Digital',
-    signage: 'Signage',
+    STN: 'Stationery',
+    MKT: 'Marketing',
+    APR: 'Apparel',
+    PKG: 'Packaging',
+    BOK: 'Books & Folders',
+    EVT: 'Events',
+    SGN: 'Signage',
+    CST: 'Custom',
   }
   return map[category] ?? category
 }
@@ -85,7 +90,7 @@ export function getTagLabel(tag: string): string {
 export function getBlockedReason(
   product: Product,
   suppliers: Supplier[],
-  machines: Machine[]
+  machines: Machine[] = []
 ): string {
   const mac = machines.find((m) => m.id === product.machine_id)
   if (product.machine_id && mac && !mac.owned) {

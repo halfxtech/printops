@@ -7,10 +7,9 @@ export const dynamic = 'force-dynamic'
 export default async function ProductsPage() {
   const supabase = createServerClient()
 
-  const [{ data: products }, { data: suppliers }, { data: machines }] = await Promise.all([
+  const [{ data: products }, { data: suppliers }] = await Promise.all([
     supabase.from('products').select('*').order('name'),
     supabase.from('suppliers').select('*').order('name'),
-    supabase.from('machines').select('*').order('name'),
   ])
 
   return (
@@ -19,7 +18,6 @@ export default async function ProductsPage() {
       <ProductList
         initialProducts={products ?? []}
         suppliers={suppliers ?? []}
-        machines={machines ?? []}
       />
     </div>
   )

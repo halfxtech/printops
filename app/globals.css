@@ -45,64 +45,64 @@
   --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
   --font-mono: 'SF Mono', 'Menlo', monospace;
 
-  --background: #F2F2F7;
-  --foreground: #1C1C1E;
+  --background: #F2F2F5;
+  --foreground: #111111;
   --card: #FFFFFF;
-  --card-foreground: #1C1C1E;
+  --card-foreground: #111111;
   --popover: #FFFFFF;
-  --popover-foreground: #1C1C1E;
-  --primary: #007AFF;
+  --popover-foreground: #111111;
+  --primary: #111111;
   --primary-foreground: #FFFFFF;
-  --secondary: #F2F2F7;
-  --secondary-foreground: #1C1C1E;
-  --muted: #F2F2F7;
-  --muted-foreground: #8E8E93;
-  --accent: #E5E5EA;
-  --accent-foreground: #1C1C1E;
+  --secondary: #EBEBEB;
+  --secondary-foreground: #111111;
+  --muted: #EBEBEB;
+  --muted-foreground: #737373;
+  --accent: #E3E3E3;
+  --accent-foreground: #111111;
   --destructive: #FF3B30;
-  --border: rgba(60, 60, 67, 0.12);
-  --input: rgba(60, 60, 67, 0.12);
-  --ring: #007AFF;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.08);
+  --ring: #111111;
   --radius: 0.75rem;
 
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #1C1C1E;
-  --sidebar-primary: #007AFF;
+  --sidebar-foreground: #111111;
+  --sidebar-primary: #111111;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F2F2F7;
-  --sidebar-accent-foreground: #1C1C1E;
-  --sidebar-border: rgba(60, 60, 67, 0.12);
-  --sidebar-ring: #007AFF;
+  --sidebar-accent: #EBEBEB;
+  --sidebar-accent-foreground: #111111;
+  --sidebar-border: rgba(0, 0, 0, 0.07);
+  --sidebar-ring: #111111;
 }
 
 .dark {
-  --background: #000000;
+  --background: #0E0E10;
   --foreground: #FFFFFF;
-  --card: #1C1C1E;
+  --card: #1A1A1C;
   --card-foreground: #FFFFFF;
-  --popover: #1C1C1E;
+  --popover: #1A1A1C;
   --popover-foreground: #FFFFFF;
-  --primary: #0A84FF;
-  --primary-foreground: #FFFFFF;
-  --secondary: #2C2C2E;
+  --primary: #FFFFFF;
+  --primary-foreground: #111111;
+  --secondary: #222224;
   --secondary-foreground: #FFFFFF;
-  --muted: #2C2C2E;
-  --muted-foreground: #8E8E93;
-  --accent: #3A3A3C;
+  --muted: #222224;
+  --muted-foreground: #737373;
+  --accent: #2A2A2C;
   --accent-foreground: #FFFFFF;
   --destructive: #FF453A;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.08);
-  --ring: #0A84FF;
+  --border: rgba(255, 255, 255, 0.07);
+  --input: rgba(255, 255, 255, 0.07);
+  --ring: #FFFFFF;
 
-  --sidebar: #1C1C1E;
+  --sidebar: #141416;
   --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #0A84FF;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #2C2C2E;
+  --sidebar-primary: #FFFFFF;
+  --sidebar-primary-foreground: #111111;
+  --sidebar-accent: #222224;
   --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #0A84FF;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-ring: #FFFFFF;
 }
 
 @layer base {
@@ -118,39 +118,41 @@
 }
 
 @layer utilities {
+  /* Card surface — white, elevated above the gray page background */
   .apple-card {
     background: var(--card);
-    border-radius: 12px;
-    border: 0.5px solid var(--border);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1), 0 0.5px 1px rgba(0,0,0,0.06);
+    border-radius: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   }
 
+  /* Section label above a card group */
   .apple-grouped-label {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--muted-foreground);
-    padding: 0 4px;
-    margin-bottom: 8px;
+    padding: 0 2px;
+    margin-bottom: 6px;
   }
 
   /* Standard list row — used inside apple-card grouped lists */
   .apple-list-row {
-    padding: 14px 16px;
+    padding: 16px 20px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    transition: background 0.12s ease;
-    min-height: 56px;
+    gap: 14px;
+    transition: background 0.1s ease;
+    min-height: 60px;
   }
 
   .apple-list-row:hover {
-    background: rgba(0, 0, 0, 0.02);
+    background: rgba(0, 0, 0, 0.025);
   }
 
   .dark .apple-list-row:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.04);
   }
 
   .apple-list-row:active {
@@ -163,9 +165,9 @@
 
   /* Expanded detail section inside a list card */
   .apple-detail-panel {
-    padding: 16px;
-    background: rgba(0, 0, 0, 0.02);
-    border-top: 0.5px solid var(--border);
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.015);
+    border-top: 1px solid var(--border);
   }
 
   .dark .apple-detail-panel {

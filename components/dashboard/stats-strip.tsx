@@ -17,18 +17,16 @@ export function StatsStrip({ stats }: StatsStripProps) {
       {stats.map((stat, i) => (
         <div
           key={i}
-          className="apple-card p-4"
+          className="apple-card p-5 flex flex-col justify-between h-28"
         >
-          <p className="text-[13px] text-muted-foreground font-medium mb-1">{stat.label}</p>
+          <p className="text-[13px] text-muted-foreground font-medium">{stat.label}</p>
           <p
-            className="text-[28px] font-semibold leading-none tracking-tight"
+            className="text-[32px] font-bold leading-none tracking-tight"
             style={{ color: stat.color ?? 'var(--foreground)' }}
           >
             {stat.value}
           </p>
-          {stat.sublabel && (
-            <p className="text-[11px] text-muted-foreground mt-1">{stat.sublabel}</p>
-          )}
+          <p className="text-[11px] text-muted-foreground">{stat.sublabel ?? ' '}</p>
         </div>
       ))}
     </div>

@@ -2,24 +2,22 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { cn, getCategoryColor, getCategoryLabel, getMargin, formatCurrency, getStatusColorClass, getTagLabel } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
+import { cn, getCategoryColor, getCategoryLabel, getSellPrice, formatCurrency, getTagLabel } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import type { Product, Supplier, Machine, ProductStatus } from '@/lib/types'
+import type { Product, Supplier, ProductStatus } from '@/lib/types'
 
 interface ProductCardProps {
   product: Product
   status: ProductStatus
   supplier?: Supplier | null
-  machine?: Machine | null
   onEdit: (product: Product) => void
   onArchive: (product: Product) => void
 }
 
-export function ProductCard({ product, status, supplier, machine, onEdit, onArchive }: ProductCardProps) {
+export function ProductCard({ product, status, supplier, onEdit, onArchive }: ProductCardProps) {
   const [expanded, setExpanded] = useState(false)
-  const margin = getMargin(product.cost_price, product.sell_price)
   const catColor = getCategoryColor(product.category)
+  const hasSizes = product.sizes && product.sizes.length > 0
 
   return (
     <div>
@@ -38,18 +36,7 @@ export function ProductCard({ product, status, supplier, machine, onEdit, onArch
             <p className="text-xs text-muted-foreground mt-0.5">{getCategoryLabel(product.category)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0 ml-3 flex-wrap justify-end">
-          <Badge className={cn('border-0', getStatusColorClass(status.color))}>
-            {status.label}
-          </Badge>
-          <span className={cn(
-            'text-xs font-semibold px-2 py-0.5 rounded-full',
-            margin >= 60 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-            margin >= 30 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-          )}>
-            {margin}%
-          </span>
+        <div className="flex items-center gap-2 shrink-0 ml-3">
           <ChevronDown
             className={cn('w-4 h-4 text-muted-foreground transition-transform duration-200 shrink-0', expanded && 'rotate-180')}
           />
@@ -60,21 +47,43 @@ export function ProductCard({ product, status, supplier, machine, onEdit, onArch
       {expanded && (
         <div className="apple-detail-panel space-y-4">
 
-          {/* Price strip */}
-          <div className="grid grid-cols-3 gap-4">
+          {/* Sizes or single price strip */}
+          {hasSizes ? (
             <div>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Cost</p>
-              <p className="text-[15px] font-semibold text-foreground">{formatCurrency(product.cost_price)}</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-2">Sizes</p>
+              <div className="space-y-1.5">
+                {product.sizes.map((size, idx) => {
+                  const sell = getSellPrice(size.cost_price, product.margin_pct)
+                  const profit = sell - size.cost_price
+                  return (
+                    <div key={idx} className="flex items-center justify-between bg-muted/40 rounded-[8px] px-3 py-2">
+                      <span className="text-[13px] font-medium text-foreground">{size.name}</span>
+                      <div className="flex items-center gap-3 text-[12px]">
+                        <span className="text-muted-foreground">Cost {formatCurrency(size.cost_price)}</span>
+                        <span className="font-semibold text-foreground">Sell {formatCurrency(sell)}</span>
+                        <span className="text-green-600 font-medium">+{formatCurrency(profit)}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-            <div>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Sell</p>
-              <p className="text-[15px] font-semibold text-foreground">{formatCurrency(product.sell_price)}</p>
+          ) : (
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Cost</p>
+                <p className="text-[15px] font-semibold text-foreground">{formatCurrency(product.cost_price)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Sell</p>
+                <p className="text-[15px] font-semibold text-foreground">{formatCurrency(getSellPrice(product.cost_price, product.margin_pct))}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Margin</p>
+                <p className="text-[15px] font-semibold text-foreground">+{product.margin_pct}%</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Margin</p>
-              <p className="text-[15px] font-semibold text-foreground">{margin}%</p>
-            </div>
-          </div>
+          )}
 
           {/* MOQ */}
           {product.moq && (
@@ -89,19 +98,6 @@ export function ProductCard({ product, status, supplier, machine, onEdit, onArch
             <div>
               <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Supplier</p>
               <p className="text-[13px] text-foreground">{supplier.name}</p>
-            </div>
-          )}
-
-          {/* Machine */}
-          {machine && (
-            <div>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">Equipment</p>
-              <p className="text-[13px] text-foreground">
-                {machine.name}
-                {!machine.owned && (
-                  <span className="ml-2 text-[11px] font-medium text-orange-600 dark:text-orange-400">(not owned · RM {machine.cost})</span>
-                )}
-              </p>
             </div>
           )}
 
@@ -130,7 +126,7 @@ export function ProductCard({ product, status, supplier, machine, onEdit, onArch
           {/* Actions */}
           <div className="flex gap-2 pt-1">
             <Button onClick={() => onEdit(product)} className="flex-1 h-10">Edit</Button>
-            <Button onClick={() => onArchive(product)} variant="destructive" className="flex-1 h-10">Archive</Button>
+            <Button onClick={() => onArchive(product)} variant="destructive" className="flex-1 h-10">Delete</Button>
           </div>
         </div>
       )}

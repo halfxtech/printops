@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createServerClient } from '@/lib/supabase'
-import { getMargin } from '@/lib/utils'
+import { getSellPrice } from '@/lib/utils'
 
 // Rate limit: max 1 call per 5 minutes stored in module-level memory
 let lastCallAt = 0
@@ -30,10 +30,9 @@ export async function POST() {
 
   const supabase = createServerClient()
 
-  const [{ data: products }, { data: suppliers }, { data: machines }] = await Promise.all([
+  const [{ data: products }, { data: suppliers }] = await Promise.all([
     supabase.from('products').select('*').eq('status', 'active'),
     supabase.from('suppliers').select('*'),
-    supabase.from('machines').select('*'),
   ])
 
   if (!products?.length) {
@@ -46,19 +45,18 @@ export async function POST() {
   // Build product summary for Claude
   const productSummary = products.map(p => {
     const supplier = suppliers?.find(s => s.id === p.supplier_id)
-    const machine = machines?.find(m => m.id === p.machine_id)
-    const margin = getMargin(p.cost_price, p.sell_price)
+    const sell = getSellPrice(p.cost_price, p.margin_pct)
     return {
       name: p.name,
       category: p.category,
       is_diy: p.is_diy,
       cost_rm: p.cost_price,
-      sell_rm: p.sell_price,
-      margin_pct: margin,
+      sell_rm: sell,
+      margin_pct: p.margin_pct,
+      sizes: p.sizes ?? [],
       moq: p.moq,
       tags: p.tags,
       supplier: supplier?.name ?? (p.is_diy ? 'DIY' : 'none'),
-      machine_needed: machine ? `${machine.name} (${machine.owned ? 'owned' : 'NOT owned'})` : null,
       notes: p.notes,
     }
   })

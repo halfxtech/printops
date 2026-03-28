@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { getProductStatus } from '@/lib/utils'
+import { getProductStatus, getCategoryColor } from '@/lib/utils'
 import { ProductCard } from './product-card'
 import { ProductForm } from './product-form'
 import {
@@ -16,18 +16,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import type { Product, Supplier, Machine } from '@/lib/types'
+import type { Product, Supplier, ProductCategory } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const FILTERS = [
   { key: 'all', label: 'All' },
-  { key: 'diy', label: 'DIY' },
-  { key: 'ready', label: 'Ready' },
-  { key: 'blocked', label: 'Blocked' },
-  { key: 'day1', label: 'Day 1' },
-  { key: 'highval', label: 'High Value' },
-  { key: 'recurring', label: 'Recurring' },
-  { key: 'seasonal', label: 'Seasonal' },
+  { key: 'STN', label: 'Stationery' },
+  { key: 'MKT', label: 'Marketing' },
+  { key: 'APR', label: 'Apparel' },
+  { key: 'PKG', label: 'Packaging' },
+  { key: 'BOK', label: 'Books & Folders' },
+  { key: 'EVT', label: 'Events' },
+  { key: 'SGN', label: 'Signage' },
+  { key: 'CST', label: 'Custom' },
 ] as const
 
 type FilterKey = typeof FILTERS[number]['key']
@@ -35,10 +36,9 @@ type FilterKey = typeof FILTERS[number]['key']
 interface ProductListProps {
   initialProducts: Product[]
   suppliers: Supplier[]
-  machines: Machine[]
 }
 
-export function ProductList({ initialProducts, suppliers, machines }: ProductListProps) {
+export function ProductList({ initialProducts, suppliers }: ProductListProps) {
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [products, setProducts] = useState<Product[]>(initialProducts)
@@ -64,21 +64,18 @@ export function ProductList({ initialProducts, suppliers, machines }: ProductLis
   }, [initialProducts])
 
   const statuses = Object.fromEntries(
-    products.map(p => [p.id, getProductStatus(p, suppliers, machines)])
+    products.map(p => [p.id, getProductStatus(p, suppliers)])
   )
 
   const filtered = products.filter(p => {
-    if (filter === 'all') return p.status === 'active'
-    if (filter === 'diy') return p.status === 'active' && statuses[p.id]?.code === 'diy'
-    if (filter === 'ready') return p.status === 'active' && statuses[p.id]?.code === 'ready'
-    if (filter === 'blocked') return p.status === 'active' && !['ready', 'diy'].includes(statuses[p.id]?.code)
-    return p.status === 'active' && p.tags.includes(filter)
+    if (p.status !== 'active') return false
+    if (filter === 'all') return true
+    return p.category === filter
   })
 
   async function handleArchive() {
     if (!archiveTarget) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await supabase.from('products').update({ status: 'inactive' } as any).eq('id', archiveTarget.id)
+    await supabase.from('products').delete().eq('id', archiveTarget.id)
     setArchiveTarget(null)
     router.refresh()
   }
@@ -86,19 +83,25 @@ export function ProductList({ initialProducts, suppliers, machines }: ProductLis
   return (
     <>
       {/* Segmented control filter */}
-      <div className="px-6 pt-5 pb-3 border-b border-border bg-card">
+      <div className="px-6 pt-4 pb-3 border-b border-border bg-card">
         <div className="flex gap-1 bg-muted p-1 rounded-[12px] overflow-x-auto scrollbar-none">
           {FILTERS.map(f => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
               className={cn(
-                'px-3 py-1.5 rounded-[8px] text-[13px] font-medium whitespace-nowrap transition-all duration-150 shrink-0',
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[13px] font-medium whitespace-nowrap transition-all duration-150 shrink-0',
                 filter === f.key
                   ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
+              {f.key !== 'all' && (
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ backgroundColor: getCategoryColor(f.key as ProductCategory) }}
+                />
+              )}
               {f.label}
             </button>
           ))}
@@ -131,7 +134,6 @@ export function ProductList({ initialProducts, suppliers, machines }: ProductLis
                   product={product}
                   status={statuses[product.id]}
                   supplier={suppliers.find(s => s.id === product.supplier_id)}
-                  machine={machines.find(m => m.id === product.machine_id)}
                   onEdit={(p) => { setEditProduct(p); setFormOpen(true) }}
                   onArchive={(p) => setArchiveTarget(p)}
                 />
@@ -160,16 +162,15 @@ export function ProductList({ initialProducts, suppliers, machines }: ProductLis
         onSaved={() => router.refresh()}
         product={editProduct}
         suppliers={suppliers}
-        machines={machines}
       />
 
       {/* Archive confirmation */}
       <AlertDialog open={!!archiveTarget} onOpenChange={(o) => { if (!o) setArchiveTarget(null) }}>
         <AlertDialogContent className="rounded-[20px]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Archive product?</AlertDialogTitle>
+            <AlertDialogTitle>Delete product?</AlertDialogTitle>
             <AlertDialogDescription>
-              &ldquo;{archiveTarget?.name}&rdquo; will be hidden from your active catalogue. You can restore it later.
+              &ldquo;{archiveTarget?.name}&rdquo; will be permanently deleted. This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -178,7 +179,7 @@ export function ProductList({ initialProducts, suppliers, machines }: ProductLis
               className="bg-destructive hover:bg-destructive/90"
               onClick={handleArchive}
             >
-              Archive
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

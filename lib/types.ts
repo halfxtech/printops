@@ -5,8 +5,7 @@ export interface Supplier {
   contact: string | null
   email: string | null
   location: string | null
-  moq: string | null
-  turnaround: string | null
+  website: string | null
   notes: string | null
   status: string
   created_at: string
@@ -23,15 +22,42 @@ export interface Machine {
   created_at: string
 }
 
+export interface ProductSize {
+  name: string
+  cost_price: number
+}
+
+export interface ProductVariableOption {
+  value: string
+  label: string
+  priceModifier: number  // multiplier, e.g. 1.5 = 50% more expensive
+}
+
+export interface ProductVariable {
+  variableCode: string
+  variableName: string
+  options: ProductVariableOption[]
+}
+
+export interface PricingTier {
+  qtyMin: number
+  qtyMax: number
+  discountPercentage: number
+}
+
 export interface Product {
   id: string
+  product_code: string | null
   name: string
-  category: 'packaging' | 'stationery' | 'marketing' | 'event' | 'digital' | 'signage'
+  category: 'STN' | 'MKT' | 'APR' | 'PKG' | 'BOK' | 'EVT' | 'SGN' | 'CST'
   is_diy: boolean
   supplier_id: string | null
   machine_id: string | null
   cost_price: number
-  sell_price: number
+  margin_pct: number
+  sizes: ProductSize[]
+  variables: ProductVariable[]
+  pricing_tiers: PricingTier[]
   moq: string | null
   tags: string[]
   notes: string | null
@@ -52,7 +78,7 @@ export interface AiAnalysis {
   created_at: string
 }
 
-export type ProductCategory = Product['category']
+export type ProductCategory = 'STN' | 'MKT' | 'APR' | 'PKG' | 'BOK' | 'EVT' | 'SGN' | 'CST'
 
 export type ProductStatus = {
   code: 'diy' | 'ready' | 'machine' | 'noSup'
@@ -64,7 +90,6 @@ export type ProductTag = 'day1' | 'highval' | 'recurring' | 'seasonal'
 
 export interface ProductWithStatus extends Product {
   status_info: ProductStatus
-  margin: number
   supplier?: Supplier | null
   machine?: Machine | null
 }
@@ -106,6 +131,7 @@ export interface QuoteItem {
   id: string
   quote_id: string
   product_id: string | null
+  product_code: string | null
   product_name: string
   qty: number
   unit_cost: number

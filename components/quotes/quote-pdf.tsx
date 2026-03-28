@@ -156,6 +156,12 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: '#1c1c1e',
   },
+  cellCode: {
+    fontSize: 7.5,
+    color: '#8e8e93',
+    marginTop: 2,
+    fontFamily: 'Courier',
+  },
 
   // Totals
   totalsBlock: {
@@ -321,7 +327,12 @@ export function QuotePdf({ quote, items }: QuotePdfProps) {
                 key={item.id}
                 style={[styles.tableRow, idx === items.length - 1 ? styles.tableRowLast : {}]}
               >
-                <Text style={[styles.cellText, styles.colProduct]}>{item.product_name}</Text>
+                <View style={styles.colProduct}>
+                  <Text style={styles.cellText}>{item.product_name}</Text>
+                  {item.product_code ? (
+                    <Text style={styles.cellCode}>{item.product_code}</Text>
+                  ) : null}
+                </View>
                 <Text style={[styles.cellText, styles.colQty]}>{item.qty}</Text>
                 <Text style={[styles.cellText, styles.colUnit]}>{formatCurrency(item.unit_sell)}</Text>
                 <Text style={[styles.cellText, styles.colTotal]}>{formatCurrency(item.qty * item.unit_sell)}</Text>
