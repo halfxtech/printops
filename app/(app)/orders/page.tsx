@@ -5,7 +5,7 @@ import { OrdersList } from '@/components/orders/orders-list'
 export const dynamic = 'force-dynamic'
 
 export default async function OrdersPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const { data: quotes } = await supabase
     .from('quotes')

@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const [{ data: quote }, { data: items }] = await Promise.all([
     supabase.from('quotes').select('*').eq('id', id).single(),

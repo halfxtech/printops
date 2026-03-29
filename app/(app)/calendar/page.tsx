@@ -5,7 +5,7 @@ import { CalendarView } from '@/components/calendar/calendar-view'
 export const dynamic = 'force-dynamic'
 
 export default async function CalendarPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const { data: quotes } = await supabase
     .from('quotes')

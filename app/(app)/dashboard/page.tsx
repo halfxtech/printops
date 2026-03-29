@@ -8,7 +8,7 @@ import type { ProductStatus } from '@/lib/types'
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const [{ data: products }, { data: suppliers }] = await Promise.all([
     supabase.from('products').select('*').eq('status', 'active').order('created_at'),

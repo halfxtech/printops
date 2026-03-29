@@ -5,7 +5,7 @@ import { QuoteList } from '@/components/quotes/quote-list'
 export const dynamic = 'force-dynamic'
 
 export default async function QuotesPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const [{ data: quotes }, { data: products }, { data: suppliers }] = await Promise.all([
     supabase

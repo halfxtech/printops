@@ -28,7 +28,7 @@ export async function POST() {
     )
   }
 
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const [{ data: products }, { data: suppliers }] = await Promise.all([
     supabase.from('products').select('*').eq('status', 'active'),
@@ -55,7 +55,6 @@ export async function POST() {
       margin_pct: p.margin_pct,
       sizes: p.sizes ?? [],
       moq: p.moq,
-      tags: p.tags,
       supplier: supplier?.name ?? (p.is_diy ? 'DIY' : 'none'),
       notes: p.notes,
     }

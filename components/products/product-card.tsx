@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { cn, getCategoryColor, getCategoryLabel, getSellPrice, formatCurrency, getTagLabel } from '@/lib/utils'
+import { cn, getCategoryColor, getCategoryLabel, getSellPrice, formatCurrency } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Product, Supplier, ProductStatus } from '@/lib/types'
 
@@ -101,15 +101,25 @@ export function ProductCard({ product, status, supplier, onEdit, onArchive }: Pr
             </div>
           )}
 
-          {/* Tags */}
-          {product.tags.length > 0 && (
+          {/* Variables */}
+          {product.variables?.length > 0 && (
             <div>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-2">Tags</p>
-              <div className="flex flex-wrap gap-1.5">
-                {product.tags.map(tag => (
-                  <span key={tag} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-primary/10 text-primary">
-                    {getTagLabel(tag)}
-                  </span>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-2">Variables</p>
+              <div className="space-y-1.5">
+                {product.variables.map((v) => (
+                  <div key={v.variableCode} className="bg-muted/40 rounded-[8px] px-3 py-2">
+                    <p className="text-[12px] font-semibold text-foreground mb-1">{v.variableName}</p>
+                    <div className="flex flex-wrap gap-1">
+                      {v.options.map((opt) => (
+                        <span key={opt.value} className="text-[11px] bg-background border border-border rounded-full px-2 py-0.5 text-foreground">
+                          {opt.label}
+                          {opt.priceModifier !== 1 && (
+                            <span className="text-muted-foreground ml-1">×{opt.priceModifier}</span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

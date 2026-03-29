@@ -30,8 +30,6 @@ const CATEGORIES = [
 ]
 
 const MARGIN_PRESETS = [25, 50, 75, 100]
-const TAG_OPTIONS = ['day1', 'highval', 'recurring', 'seasonal']
-const TAG_LABELS: Record<string, string> = { day1: 'Day 1', highval: 'High Value', recurring: 'Recurring', seasonal: 'Seasonal' }
 
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -58,7 +56,6 @@ export function ProductForm({ open, onClose, onSaved, product, suppliers }: Prod
     margin_pct: string
     sizes: SizeRow[]
     moq: string
-    tags: string[]
     notes: string
     status: 'active' | 'inactive'
   }>({
@@ -70,7 +67,6 @@ export function ProductForm({ open, onClose, onSaved, product, suppliers }: Prod
     margin_pct: '50',
     sizes: [],
     moq: '',
-    tags: [],
     notes: '',
     status: 'active',
   })
@@ -87,7 +83,6 @@ export function ProductForm({ open, onClose, onSaved, product, suppliers }: Prod
         margin_pct: String(product?.margin_pct ?? 50),
         sizes: product?.sizes?.map(s => ({ name: s.name, cost_price: String(s.cost_price) })) ?? [],
         moq: product?.moq ?? '',
-        tags: product?.tags ?? [],
         notes: product?.notes ?? '',
         status: product?.status ?? 'active',
       })
@@ -96,13 +91,6 @@ export function ProductForm({ open, onClose, onSaved, product, suppliers }: Prod
 
   function setField<K extends keyof typeof form>(key: K, value: typeof form[K]) {
     setForm(f => ({ ...f, [key]: value }))
-  }
-
-  function toggleTag(tag: string) {
-    setForm(f => ({
-      ...f,
-      tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag],
-    }))
   }
 
   function addSize() {
@@ -151,7 +139,6 @@ export function ProductForm({ open, onClose, onSaved, product, suppliers }: Prod
       margin_pct: parseInt(form.margin_pct) || 0,
       sizes,
       moq: form.moq || null,
-      tags: form.tags,
       notes: form.notes || null,
       status: asDraft ? 'inactive' : form.status as 'active' | 'inactive',
     }
@@ -382,25 +369,6 @@ export function ProductForm({ open, onClose, onSaved, product, suppliers }: Prod
               />
             </FormField>
           </div>
-
-          {/* Tags */}
-          <FormField label="Tags">
-            <div className="flex flex-wrap gap-2">
-              {TAG_OPTIONS.map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => toggleTag(tag)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    form.tags.includes(tag)
-                      ? 'bg-primary text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-accent'
-                  }`}
-                >
-                  {TAG_LABELS[tag]}
-                </button>
-              ))}
-            </div>
-          </FormField>
 
           <FormField label="Notes">
             <Textarea

@@ -1,16 +1,15 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createBrowserClient, createServerClient as createSSRClient } from '@supabase/ssr'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyClient = SupabaseClient<any>
+let _browserClient: ReturnType<typeof createBrowserClient> | null = null
 
-let _browserClient: AnyClient | null = null
-
-/** Lazy singleton browser client — safe for client components */
-export function getSupabaseClient(): AnyClient {
+/** Lazy singleton browser client — reads session from cookies, safe for client components */
+export function getSupabaseClient() {
   if (_browserClient) return _browserClient
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
-  _browserClient = createClient(url, key)
+  _browserClient = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   return _browserClient
 }
 
@@ -21,9 +20,22 @@ export const supabase = {
   get removeChannel() { return getSupabaseClient().removeChannel.bind(getSupabaseClient()) },
 }
 
-/** Server-side client — fresh per request, safe in Server Components & API routes */
-export function createServerClient(): AnyClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
-  return createClient(url, key)
+/** Server-side client — fresh per request, forwards session cookies for RLS */
+export async function createServerClient() {
+  const { cookies } = await import('next/headers')
+  const cookieStore = await cookies()
+  return createSSRClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
 }

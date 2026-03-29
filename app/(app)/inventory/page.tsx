@@ -5,7 +5,7 @@ import { InventoryList } from '@/components/inventory/inventory-list'
 export const dynamic = 'force-dynamic'
 
 export default async function InventoryPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const { data: inventory } = await supabase
     .from('inventory')

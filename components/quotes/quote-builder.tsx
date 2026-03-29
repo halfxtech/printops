@@ -45,11 +45,15 @@ async function generateQuoteNumber(): Promise<string> {
   const mm = String(now.getMonth() + 1).padStart(2, '0')
   const yy = String(now.getFullYear()).slice(-2)
   const prefix = `QX-${mm}${yy}-`
-  const { count } = await supabase
+  const { data } = await supabase
     .from('quotes')
-    .select('id', { count: 'exact', head: true })
+    .select('quote_number')
     .like('quote_number', `${prefix}%`)
-  return `${prefix}${String((count ?? 0) + 1).padStart(3, '0')}`
+    .order('quote_number', { ascending: false })
+    .limit(1)
+  const last = data?.[0]?.quote_number
+  const lastNum = last ? parseInt(last.replace(prefix, ''), 10) : 0
+  return `${prefix}${String(lastNum + 1).padStart(3, '0')}`
 }
 
 export function QuoteBuilder({ open, onClose, onSaved, quote, products, suppliers }: QuoteBuilderProps) {
@@ -57,23 +61,33 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
   const [customerCompany, setCustomerCompany] = useState('')
   const [customerContact, setCustomerContact] = useState('')
   const [customerAddress, setCustomerAddress] = useState('')
-  const [description, setDescription] = useState('')
   const [dateline, setDateline] = useState('')
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState<Quote['status']>('draft')
   const [lineItems, setLineItems] = useState<LineItem[]>([])
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [expandedProductIds, setExpandedProductIds] = useState<Set<string>>(new Set())
   const [variableSelections, setVariableSelections] = useState<Record<string, Record<string, string>>>({})
+  const [productSearch, setProductSearch] = useState('')
+  const [freshProducts, setFreshProducts] = useState<Product[]>(products)
 
   useEffect(() => {
     if (open) {
+      supabase.from('products').select('*').eq('status', 'active').order('name')
+        .then(({ data }) => { if (data) setFreshProducts(data as Product[]) })
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (open) {
+      setProductSearch('')
+      setSaveError(null)
       if (quote) {
         setCustomerName(quote.customer_name)
         setCustomerCompany(quote.customer_company ?? '')
         setCustomerContact(quote.customer_contact ?? '')
         setCustomerAddress(quote.customer_address ?? '')
-        setDescription(quote.description ?? '')
         setDateline(quote.dateline ?? '')
         setNotes(quote.notes ?? '')
         setStatus(quote.status)
@@ -94,7 +108,6 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
         setCustomerCompany('')
         setCustomerContact('')
         setCustomerAddress('')
-        setDescription('')
         setDateline('')
         setNotes('')
         setStatus('draft')
@@ -169,31 +182,45 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
       supplierEmail: supplier?.email ?? null,
       supplierContact: supplier?.contact ?? null,
     }])
+    // Reset selections and collapse after adding
+    setVariableSelections(prev => ({ ...prev, [product.id]: {} }))
+    setExpandedProductIds(prev => { const next = new Set(prev); next.delete(product.id); return next })
   }
 
   function removeItem(idx: number) {
     setLineItems(prev => prev.filter((_, i) => i !== idx))
   }
 
-  function updateQty(idx: number, delta: number) {
+  function updateQty(idx: number, value: number) {
     setLineItems(prev => prev.map((item, i) =>
-      i === idx ? { ...item, qty: Math.max(1, item.qty + delta) } : item
+      i === idx ? { ...item, qty: Math.max(1, value) } : item
+    ))
+  }
+
+  function updateSellPrice(idx: number, value: number) {
+    setLineItems(prev => prev.map((item, i) =>
+      i === idx ? { ...item, unit_sell: value } : item
     ))
   }
 
   async function handleSave() {
     if (!customerName.trim()) return
+    setSaveError(null)
     setSaving(true)
     try {
       let quoteId = quote?.id ?? null
 
       if (quoteId) {
-        await supabase.from('quotes').update({
+        // Fetch existing item IDs before touching anything
+        const { data: existingItems } = await supabase
+          .from('quote_items').select('id').eq('quote_id', quoteId)
+
+        const { error: updateError } = await supabase.from('quotes').update({
           customer_name: customerName.trim(),
           customer_company: customerCompany.trim() || null,
           customer_contact: customerContact.trim() || null,
           customer_address: customerAddress.trim() || null,
-          description: description.trim() || null,
+          description: null,
           dateline: dateline || null,
           notes: notes.trim() || null,
           status,
@@ -201,45 +228,76 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
           total_cost: totalCost,
           updated_at: new Date().toISOString(),
         }).eq('id', quoteId)
-        await supabase.from('quote_items').delete().eq('quote_id', quoteId)
+        if (updateError) throw updateError
+
+        // Insert new items first — if this fails, old items survive
+        if (lineItems.length > 0) {
+          const { error: insertError } = await supabase.from('quote_items').insert(
+            lineItems.map(item => ({
+              quote_id: quoteId,
+              product_id: item.productId,
+              product_code: item.productCode,
+              product_name: item.productName,
+              qty: item.qty,
+              unit_cost: item.unit_cost,
+              unit_sell: item.unit_sell,
+              supplier_name: item.supplierName,
+              supplier_address: item.supplierAddress,
+              supplier_email: item.supplierEmail,
+              supplier_contact: item.supplierContact,
+            }))
+          )
+          if (insertError) throw insertError
+        }
+
+        // Only delete old items after new ones are safely inserted
+        if (existingItems && existingItems.length > 0) {
+          await supabase.from('quote_items')
+            .delete()
+            .in('id', existingItems.map(r => r.id))
+        }
       } else {
         const quoteNumber = await generateQuoteNumber()
-        const { data } = await supabase.from('quotes').insert({
+        const { data, error: insertQuoteError } = await supabase.from('quotes').insert({
           quote_number: quoteNumber,
           customer_name: customerName.trim(),
           customer_company: customerCompany.trim() || null,
           customer_contact: customerContact.trim() || null,
           customer_address: customerAddress.trim() || null,
-          description: description.trim() || null,
+          description: null,
           dateline: dateline || null,
           notes: notes.trim() || null,
           status,
           total_sell: totalSell,
           total_cost: totalCost,
         }).select('id').single()
+        if (insertQuoteError) throw insertQuoteError
         quoteId = data?.id ?? null
-      }
 
-      if (quoteId && lineItems.length > 0) {
-        await supabase.from('quote_items').insert(
-          lineItems.map(item => ({
-            quote_id: quoteId,
-            product_id: item.productId,
-            product_code: item.productCode,
-            product_name: item.productName,
-            qty: item.qty,
-            unit_cost: item.unit_cost,
-            unit_sell: item.unit_sell,
-            supplier_name: item.supplierName,
-            supplier_address: item.supplierAddress,
-            supplier_email: item.supplierEmail,
-            supplier_contact: item.supplierContact,
-          }))
-        )
+        if (quoteId && lineItems.length > 0) {
+          const { error: itemsError } = await supabase.from('quote_items').insert(
+            lineItems.map(item => ({
+              quote_id: quoteId,
+              product_id: item.productId,
+              product_code: item.productCode,
+              product_name: item.productName,
+              qty: item.qty,
+              unit_cost: item.unit_cost,
+              unit_sell: item.unit_sell,
+              supplier_name: item.supplierName,
+              supplier_address: item.supplierAddress,
+              supplier_email: item.supplierEmail,
+              supplier_contact: item.supplierContact,
+            }))
+          )
+          if (itemsError) throw itemsError
+        }
       }
 
       onSaved()
       onClose()
+    } catch {
+      setSaveError('Failed to save. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -248,8 +306,12 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
   // For products with variants: show until all variants are added
   // For products without variants: hide once added
   const addedNames = new Set(lineItems.map(i => i.productName))
-  const availableProducts = products.filter(p => {
+  const availableProducts = freshProducts.filter(p => {
     if (p.status !== 'active') return false
+    if (productSearch) {
+      const q = productSearch.toLowerCase()
+      if (!p.name.toLowerCase().includes(q) && !(p.product_code ?? '').toLowerCase().includes(q)) return false
+    }
     // Variable products — always show (can add many combinations)
     if (p.variables && p.variables.length > 0) return true
     // Size variants — hide only if every variant already in cart
@@ -303,13 +365,6 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
                 onChange={e => setCustomerAddress(e.target.value)}
               />
             </FormField>
-            <FormField label="Project / description">
-              <Input
-                placeholder="e.g. Raya packaging set"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-              />
-            </FormField>
             <FormField label="Job deadline">
               <Input
                 type="date"
@@ -336,18 +391,40 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
                       {item.supplierName && (
                         <p className="text-xs text-muted-foreground mt-0.5">via {item.supplierName}</p>
                       )}
-                      <p className="text-xs text-muted-foreground mt-0.5">{formatCurrency(item.unit_sell)} each</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={item.unit_sell}
+                          onChange={e => {
+                            const val = parseFloat(e.target.value)
+                            if (!isNaN(val) && val >= 0) updateSellPrice(idx, val)
+                          }}
+                          className="text-xs text-muted-foreground w-16 bg-transparent border-b border-border focus:outline-none focus:border-primary"
+                        />
+                        <span className="text-xs text-muted-foreground">each</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
-                        onClick={() => updateQty(idx, -1)}
+                        onClick={() => updateQty(idx, item.qty - 1)}
                         className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-foreground hover:bg-muted/70 active:scale-95 transition-all text-base leading-none"
                       >
                         −
                       </button>
-                      <span className="text-sm font-semibold w-5 text-center">{item.qty}</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={item.qty}
+                        onChange={e => {
+                          const val = parseInt(e.target.value, 10)
+                          if (!isNaN(val) && val >= 1) updateQty(idx, val)
+                        }}
+                        className="text-sm font-semibold w-10 text-center bg-transparent border-b border-border focus:outline-none focus:border-primary"
+                      />
                       <button
-                        onClick={() => updateQty(idx, 1)}
+                        onClick={() => updateQty(idx, item.qty + 1)}
                         className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-foreground hover:bg-muted/70 active:scale-95 transition-all text-base leading-none"
                       >
                         +
@@ -393,11 +470,20 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
           )}
 
           {/* Product picker */}
-          {availableProducts.length > 0 && (
+          {(availableProducts.length > 0 || productSearch) && (
             <div>
               <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-3">
                 Add products
               </p>
+              <Input
+                placeholder="Search products…"
+                value={productSearch}
+                onChange={e => setProductSearch(e.target.value)}
+                className="mb-3"
+              />
+              {availableProducts.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No products match "{productSearch}"</p>
+              ) : (
               <div className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden divide-y divide-border">
                 {availableProducts.map(product => {
                   const hasVariables = product.variables && product.variables.length > 0
@@ -526,6 +612,7 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
                   )
                 })}
               </div>
+              )}
             </div>
           )}
 
@@ -563,6 +650,9 @@ export function QuoteBuilder({ open, onClose, onSaved, quote, products, supplier
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-border shrink-0">
+          {saveError && (
+            <p className="text-xs text-destructive mb-2 text-center">{saveError}</p>
+          )}
           <Button
             onClick={handleSave}
             disabled={!customerName.trim() || saving}

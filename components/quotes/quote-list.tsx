@@ -39,6 +39,7 @@ export function QuoteList({ initialQuotes, products, suppliers }: QuoteListProps
   const [editQuote, setEditQuote] = useState<QuoteWithItems | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [exportingId, setExportingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
     const channel = supabase
@@ -244,13 +245,32 @@ export function QuoteList({ initialQuotes, products, suppliers }: QuoteListProps
                           >
                             {exportingId === quote.id ? 'Generating…' : 'Export PDF'}
                           </Button>
-                          <Button
-                            onClick={() => handleDelete(quote.id)}
-                            variant="destructive"
-                            className="flex-1 h-10"
-                          >
-                            Delete
-                          </Button>
+                          {confirmDeleteId === quote.id ? (
+                            <>
+                              <Button
+                                onClick={() => { handleDelete(quote.id); setConfirmDeleteId(null) }}
+                                variant="destructive"
+                                className="flex-1 h-10 text-xs"
+                              >
+                                Confirm
+                              </Button>
+                              <Button
+                                onClick={() => setConfirmDeleteId(null)}
+                                variant="outline"
+                                className="flex-1 h-10 text-xs"
+                              >
+                                Cancel
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              onClick={() => setConfirmDeleteId(quote.id)}
+                              variant="destructive"
+                              className="flex-1 h-10"
+                            >
+                              Delete
+                            </Button>
+                          )}
                         </div>
                       </div>
                     )}

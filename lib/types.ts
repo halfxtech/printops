@@ -59,7 +59,6 @@ export interface Product {
   variables: ProductVariable[]
   pricing_tiers: PricingTier[]
   moq: string | null
-  tags: string[]
   notes: string | null
   status: 'active' | 'inactive'
   created_at: string

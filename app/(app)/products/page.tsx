@@ -5,7 +5,7 @@ import { ProductList } from '@/components/products/product-list'
 export const dynamic = 'force-dynamic'
 
 export default async function ProductsPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const [{ data: products }, { data: suppliers }] = await Promise.all([
     supabase.from('products').select('*').order('name'),

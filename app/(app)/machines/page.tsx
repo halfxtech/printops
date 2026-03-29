@@ -5,7 +5,7 @@ import { MachineList } from '@/components/machines/machine-list'
 export const dynamic = 'force-dynamic'
 
 export default async function MachinesPage() {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   const [{ data: machines }, { data: products }] = await Promise.all([
     supabase.from('machines').select('*').order('owned', { ascending: false }),

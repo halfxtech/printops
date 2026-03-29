@@ -16,7 +16,7 @@ import { formatCurrency } from '@/lib/utils'
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Helvetica',
+    fontFamily: 'Courier',
     fontSize: 9,
     color: '#1c1c1e',
     paddingTop: 48,
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   },
   quoteLabel: {
     fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Courier-Bold',
     color: '#8e8e93',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   },
   quoteNumber: {
     fontSize: 14,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Courier-Bold',
     color: '#1c1c1e',
   },
   quoteDate: {
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 7.5,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Courier-Bold',
     color: '#8e8e93',
     letterSpacing: 1,
     textTransform: 'uppercase',
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   fromCompany: {
     fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Courier-Bold',
     color: '#1c1c1e',
     marginBottom: 2,
   },
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   },
   billToCompany: {
     fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Courier-Bold',
     color: '#1c1c1e',
     marginBottom: 2,
   },
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   },
   tableHeaderText: {
     fontSize: 7.5,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Courier-Bold',
     color: '#8e8e93',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
@@ -148,6 +148,7 @@ const styles = StyleSheet.create({
   tableRowLast: {
     borderBottomWidth: 0,
   },
+  colCode: { width: 64 },
   colProduct: { flex: 1 },
   colQty: { width: 36, textAlign: 'right' },
   colUnit: { width: 68, textAlign: 'right' },
@@ -157,9 +158,8 @@ const styles = StyleSheet.create({
     color: '#1c1c1e',
   },
   cellCode: {
-    fontSize: 7.5,
-    color: '#8e8e93',
-    marginTop: 2,
+    fontSize: 8.5,
+    color: '#3a3a3c',
     fontFamily: 'Courier',
   },
 
@@ -181,14 +181,14 @@ const styles = StyleSheet.create({
   },
   grandTotalLabel: {
     fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Courier-Bold',
     color: '#1c1c1e',
     width: 72,
     textAlign: 'right',
   },
   grandTotalValue: {
     fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Courier-Bold',
     color: '#1c1c1e',
     width: 72,
     textAlign: 'right',
@@ -317,6 +317,7 @@ export function QuotePdf({ quote, items }: QuotePdfProps) {
         {items.length > 0 ? (
           <View style={styles.table}>
             <View style={styles.tableHeader}>
+              <Text style={[styles.tableHeaderText, styles.colCode]}>Code</Text>
               <Text style={[styles.tableHeaderText, styles.colProduct]}>Description</Text>
               <Text style={[styles.tableHeaderText, styles.colQty]}>Qty</Text>
               <Text style={[styles.tableHeaderText, styles.colUnit]}>Unit price</Text>
@@ -327,12 +328,8 @@ export function QuotePdf({ quote, items }: QuotePdfProps) {
                 key={item.id}
                 style={[styles.tableRow, idx === items.length - 1 ? styles.tableRowLast : {}]}
               >
-                <View style={styles.colProduct}>
-                  <Text style={styles.cellText}>{item.product_name}</Text>
-                  {item.product_code ? (
-                    <Text style={styles.cellCode}>{item.product_code}</Text>
-                  ) : null}
-                </View>
+                <Text style={[styles.cellCode, styles.colCode]}>{item.product_code ?? '—'}</Text>
+                <Text style={[styles.cellText, styles.colProduct]}>{item.product_name}</Text>
                 <Text style={[styles.cellText, styles.colQty]}>{item.qty}</Text>
                 <Text style={[styles.cellText, styles.colUnit]}>{formatCurrency(item.unit_sell)}</Text>
                 <Text style={[styles.cellText, styles.colTotal]}>{formatCurrency(item.qty * item.unit_sell)}</Text>
